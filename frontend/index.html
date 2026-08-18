@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="AI-powered resume screening and candidate ranking platform"
+    >
+
+    <meta
+        name="theme-color"
+        content="#0f172a"
+    >
+
+    <title>ScreenAI | Resume Intelligence Platform</title>
+
+    <link
+        rel="stylesheet"
+        href="/style.css"
+    >
+</head>
+
+<body>
+
+    <!-- =========================================================
+         APPLICATION SHELL
+    ========================================================== -->
+
+    <div class="app-shell">
+
+        <!-- =====================================================
+             SIDEBAR
+        ====================================================== -->
+
+        <aside
+            class="sidebar"
+            id="sidebar"
+            aria-label="Main navigation"
+        >
+
+            <div class="brand">
+
+                <div class="brand-mark">
+                    <span>AI</span>
+                </div>
+
+                <div class="brand-copy">
+
+                    <h1>ScreenAI</h1>
+
+                    <p>
+                        Resume Intelligence
+                    </p>
+
+                </div>
+
+            </div>
+
+            <nav class="sidebar-nav">
+
+                <p class="nav-heading">
+                    WORKSPACE
+                </p>
+
+                <a
+                    href="#dashboard"
+                    class="nav-link active"
+                    data-section="dashboard"
+                >
+                    <span class="nav-icon">▦</span>
+                    <span>Dashboard</span>
+                </a>
+
+                <a
+                    href="#screening"
+                    class="nav-link"
+                    data-section="screening"
+                >
+                    <span class="nav-icon">◎</span>
+                    <span>Screen Candidates</span>
+                </a>
+
+                <a
+                    href="#candidates"
+                    class="nav-link"
+                    data-section="candidates"
+                >
+                    <span class="nav-icon">◉</span>
+                    <span>Candidates</span>
+                </a>
+
+                <a
+                    href="#reports"
+                    class="nav-link"
+                    data-section="reports"
+                >
+                    <span class="nav-icon">▤</span>
+                    <span>Reports</span>
+                </a>
+
+            </nav>
+
+            <div class="sidebar-bottom">
+
+                <div class="system-status">
+
+                    <span
+                        class="status-indicator"
+                        id="sidebarStatusIndicator"
+                    ></span>
+
+                    <div>
+
+                        <strong>
+                            AI Engine
+                        </strong>
+
+                        <span id="sidebarApiStatus">
+                            Checking status...
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <p class="version">
+                    ScreenAI v1.0.0
+                </p>
+
+            </div>
+
+        </aside>
+
+        <!-- =====================================================
+             MAIN APPLICATION
+        ====================================================== -->
+
+        <main class="main-content">
+
+            <!-- =================================================
+                 TOP HEADER
+            ================================================== -->
+
+            <header class="top-header">
+
+                <button
+                    type="button"
+                    class="mobile-menu-button"
+                    id="mobileMenuButton"
+                    aria-label="Open navigation"
+                >
+                    ☰
+                </button>
+
+                <div class="page-heading">
+
+                    <span class="overline">
+                        AI RECRUITMENT PLATFORM
+                    </span>
+
+                    <h2>
+                        Resume Screening
+                    </h2>
+
+                    <p>
+                        Intelligent candidate analysis, scoring
+                        and shortlist generation.
+                    </p>
+
+                </div>
+
+                <div class="header-status">
+
+                    <span
+                        class="api-pill checking"
+                        id="apiStatus"
+                    >
+                        <span class="status-dot"></span>
+                        Checking API
+                    </span>
+
+                </div>
+
+            </header>
+
+            <!-- =================================================
+                 CONTENT
+            ================================================== -->
+
+            <div class="content-container">
+
+                <!-- =============================================
+                     DASHBOARD OVERVIEW
+                ============================================== -->
+
+                <section
+                    id="dashboard"
+                    class="page-section"
+                    aria-labelledby="dashboard-title"
+                >
+
+                    <div class="section-header">
+
+                        <div>
+
+                            <span class="section-kicker">
+                                OVERVIEW
+                            </span>
+
+                            <h3 id="dashboard-title">
+                                Screening Overview
+                            </h3>
+
+                            <p>
+                                Monitor the current candidate
+                                screening pipeline.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <!-- =========================================
+                         METRICS
+                    ========================================== -->
+
+                    <div class="metrics-grid">
+
+                        <article class="metric-card">
+
+                            <div class="metric-icon">
+                                <span>01</span>
+                            </div>
+
+                            <div class="metric-content">
+
+                                <span class="metric-label">
+                                    Total Candidates
+                                </span>
+
+                                <strong
+                                    class="metric-value"
+                                    id="totalCandidates"
+                                >
+                                    0
+                                </strong>
+
+                                <span class="metric-description">
+                                    Resumes analyzed
+                                </span>
+
+                            </div>
+
+                        </article>
+
+                        <article class="metric-card">
+
+                            <div class="metric-icon success">
+                                <span>02</span>
+                            </div>
+
+                            <div class="metric-content">
+
+                                <span class="metric-label">
+                                    Shortlisted
+                                </span>
+
+                                <strong
+                                    class="metric-value"
+                                    id="shortlistedCandidates"
+                                >
+                                    0
+                                </strong>
+
+                                <span class="metric-description">
+                                    Candidates above threshold
+                                </span>
+
+                            </div>
+
+                        </article>
+
+                        <article class="metric-card">
+
+                            <div class="metric-icon accent">
+                                <span>03</span>
+                            </div>
+
+                            <div class="metric-content">
+
+                                <span class="metric-label">
+                                    Average Score
+                                </span>
+
+                                <strong
+                                    class="metric-value"
+                                    id="averageScore"
+                                >
+                                    0%
+                                </strong>
+
+                                <span class="metric-description">
+                                    Overall candidate quality
+                                </span>
+
+                            </div>
+
+                        </article>
+
+                        <article class="metric-card">
+
+                            <div class="metric-icon warning">
+                                <span>04</span>
+                            </div>
+
+                            <div class="metric-content">
+
+                                <span class="metric-label">
+                                    Highest Score
+                                </span>
+
+                                <strong
+                                    class="metric-value"
+                                    id="highestScore"
+                                >
+                                    0%
+                                </strong>
+
+                                <span class="metric-description">
+                                    Best candidate match
+                                </span>
+
+                            </div>
+
+                        </article>
+
+                    </div>
+
+                    <!-- =========================================
+                         QUICK ACTION
+                    ========================================== -->
+
+                    <div class="quick-start-card">
+
+                        <div class="quick-start-content">
+
+                            <span class="section-kicker">
+                                GET STARTED
+                            </span>
+
+                            <h3>
+                                Start a new screening
+                            </h3>
+
+                            <p>
+                                Upload your job description and
+                                candidate resumes to begin analysis.
+                            </p>
+
+                        </div>
+
+                        <button
+                            type="button"
+                            class="primary-button"
+                            id="startScreeningButton"
+                        >
+                            Start Screening
+                            <span>→</span>
+                        </button>
+
+                    </div>
+
+                </section>
+
+                <!-- =============================================
+                     SCREENING WORKSPACE
+                ============================================== -->
+
+                <section
+                    id="screening"
+                    class="page-section"
+                    aria-labelledby="screening-title"
+                >
+
+                    <div class="section-header">
+
+                        <div>
+
+                            <span class="section-kicker">
+                                SCREENING WORKSPACE
+                            </span>
+
+                            <h3 id="screening-title">
+                                Candidate Screening
+                            </h3>
+
+                            <p>
+                                Provide the hiring requirements and
+                                candidate resumes for AI analysis.
+                            </p>
+
+                        </div>
+
+                        <div class="engine-status">
+
+                            <span class="engine-pulse"></span>
+
+                            Semantic AI Engine
+
+                        </div>
+
+                    </div>
+
+                    <!-- =========================================
+                         UPLOAD AREA
+                    ========================================== -->
+
+                    <div class="upload-grid">
+
+                        <!-- =====================================
+                             JOB DESCRIPTION
+                        ====================================== -->
+
+                        <article class="upload-panel">
+
+                            <div class="upload-panel-header">
+
+                                <div class="upload-number">
+                                    01
+                                </div>
+
+                                <div>
+
+                                    <h4>
+                                        Job Description
+                                    </h4>
+
+                                    <p>
+                                        Define the role requirements.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                            <label
+                                for="jobDescription"
+                                class="drop-zone"
+                                id="jobDropZone"
+                            >
+
+                                <div class="drop-zone-icon">
+                                    ↑
+                                </div>
+
+                                <strong>
+                                    Upload Job Description
+                                </strong>
+
+                                <span>
+                                    Drag & drop or browse files
+                                </span>
+
+                                <small>
+                                    TXT, PDF, DOCX
+                                </small>
+
+                                <input
+                                    id="jobDescription"
+                                    name="jobDescription"
+                                    type="file"
+                                    accept=".txt,.pdf,.docx"
+                                    hidden
+                                >
+
+                            </label>
+
+                            <div
+                                class="file-preview"
+                                id="jobFilePreview"
+                                hidden
+                            >
+
+                                <div class="file-type">
+                                    JD
+                                </div>
+
+                                <div class="file-info">
+
+                                    <strong
+                                        id="jobFileName"
+                                    >
+                                        —
+                                    </strong>
+
+                                    <span>
+                                        Job Description
+                                    </span>
+
+                                </div>
+
+                                <button
+                                    type="button"
+                                    class="remove-file"
+                                    id="removeJobFile"
+                                    aria-label="Remove job description"
+                                >
+                                    ×
+                                </button>
+
+                            </div>
+
+                        </article>
+
+                        <!-- =====================================
+                             RESUMES
+                        ====================================== -->
+
+                        <article class="upload-panel">
+
+                            <div class="upload-panel-header">
+
+                                <div class="upload-number">
+                                    02
+                                </div>
+
+                                <div>
+
+                                    <h4>
+                                        Candidate Resumes
+                                    </h4>
+
+                                    <p>
+                                        Add one or multiple resumes.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                            <label
+                                for="resumes"
+                                class="drop-zone"
+                                id="resumeDropZone"
+                            >
+
+                                <div class="drop-zone-icon">
+                                    ↑
+                                </div>
+
+                                <strong>
+                                    Upload Candidate Resumes
+                                </strong>
+
+                                <span>
+                                    Drag & drop or browse files
+                                </span>
+
+                                <small>
+                                    Multiple TXT, PDF, DOCX
+                                </small>
+
+                                <input
+                                    id="resumes"
+                                    name="resumes"
+                                    type="file"
+                                    accept=".txt,.pdf,.docx"
+                                    multiple
+                                    hidden
+                                >
+
+                            </label>
+
+                            <div
+                                class="file-preview"
+                                id="resumeFilePreview"
+                                hidden
+                            >
+
+                                <div class="file-type">
+                                    CV
+                                </div>
+
+                                <div class="file-info">
+
+                                    <strong
+                                        id="resumeFileName"
+                                    >
+                                        —
+                                    </strong>
+
+                                    <span
+                                        id="resumeFileCount"
+                                    >
+                                        0 files selected
+                                    </span>
+
+                                </div>
+
+                                <button
+                                    type="button"
+                                    class="remove-file"
+                                    id="removeResumeFiles"
+                                    aria-label="Remove resumes"
+                                >
+                                    ×
+                                </button>
+
+                            </div>
+
+                        </article>
+
+                    </div>
+
+                    <!-- =========================================
+                         SCREENING CONFIGURATION
+                    ========================================== -->
+
+                    <div class="configuration-panel">
+
+                        <div class="configuration-heading">
+
+                            <span>
+                                SCREENING CONFIGURATION
+                            </span>
+
+                            <small>
+                                Advanced options
+                            </small>
+
+                        </div>
+
+                        <div class="configuration-grid">
+
+                            <div class="form-field">
+
+                                <label for="topK">
+                                    Shortlist Size
+                                </label>
+
+                                <input
+                                    id="topK"
+                                    type="number"
+                                    value="5"
+                                    min="1"
+                                    max="100"
+                                >
+
+                            </div>
+
+                            <div class="form-field">
+
+                                <label for="scoreThreshold">
+                                    Minimum Score
+                                </label>
+
+                                <div class="input-with-suffix">
+
+                                    <input
+                                        id="scoreThreshold"
+                                        type="number"
+                                        value="70"
+                                        min="0"
+                                        max="100"
+                                    >
+
+                                    <span>%</span>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- =========================================
+                         ACTION
+                    ========================================== -->
+
+                    <div class="screening-action">
+
+                        <button
+                            type="button"
+                            class="primary-button primary-large"
+                            id="screenButton"
+                        >
+
+                            <span id="buttonIcon">
+                                Run AI Screening
+                            </span>
+
+                            <span
+                                id="buttonLoader"
+                                class="button-loader"
+                                hidden
+                            ></span>
+
+                        </button>
+
+                        <p>
+                            Your files are processed locally by
+                            the screening pipeline.
+                        </p>
+
+                    </div>
+
+                    <!-- =========================================
+                         PROGRESS
+                    ========================================== -->
+
+                    <div
+                        id="progressContainer"
+                        class="progress-panel"
+                        hidden
+                    >
+
+                        <div class="progress-top">
+
+                            <div>
+
+                                <strong>
+                                    Screening candidates
+                                </strong>
+
+                                <span id="progressText">
+                                    Initializing AI engine...
+                                </span>
+
+                            </div>
+
+                            <span id="progressPercent">
+                                0%
+                            </span>
+
+                        </div>
+
+                        <div class="progress-track">
+
+                            <div
+                                id="progressBar"
+                                class="progress-bar"
+                            ></div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+                <!-- =============================================
+                     CANDIDATE RESULTS
+                ============================================== -->
+
+                <section
+                    id="candidates"
+                    class="page-section"
+                    aria-labelledby="candidates-title"
+                >
+
+                    <div class="section-header results-header">
+
+                        <div>
+
+                            <span class="section-kicker">
+                                AI ANALYSIS
+                            </span>
+
+                            <h3 id="candidates-title">
+                                Candidate Ranking
+                            </h3>
+
+                            <p>
+                                Ranked according to the configured
+                                screening engine.
+                            </p>
+
+                        </div>
+
+                        <div class="report-actions">
+
+                            <button
+                                type="button"
+                                class="secondary-button"
+                                data-report="candidate_ranking.csv"
+                            >
+                                CSV
+                            </button>
+
+                            <button
+                                type="button"
+                                class="secondary-button"
+                                data-report="screening_report.json"
+                            >
+                                JSON
+                            </button>
+
+                            <button
+                                type="button"
+                                class="secondary-button"
+                                data-report="screening_report.txt"
+                            >
+                                TXT
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                    <!-- =========================================
+                         TABLE
+                    ========================================== -->
+
+                    <div class="table-card">
+
+                        <div class="table-wrapper">
+
+                            <table class="candidate-table">
+
+                                <thead>
+
+                                    <tr>
+
+                                        <th>
+                                            Rank
+                                        </th>
+
+                                        <th>
+                                            Candidate
+                                        </th>
+
+                                        <th>
+                                            Final Score
+                                        </th>
+
+                                        <th>
+                                            Semantic
+                                        </th>
+
+                                        <th>
+                                            Skills
+                                        </th>
+
+                                        <th>
+                                            Decision
+                                        </th>
+
+                                        <th>
+                                            Action
+                                        </th>
+
+                                    </tr>
+
+                                </thead>
+
+                                <tbody
+                                    id="candidateTableBody"
+                                >
+
+                                    <tr>
+
+                                        <td
+                                            colspan="7"
+                                            class="table-empty"
+                                        >
+
+                                            <div class="empty-state">
+
+                                                <div class="empty-icon">
+                                                    —
+                                                </div>
+
+                                                <strong>
+                                                    No screening results
+                                                </strong>
+
+                                                <span>
+                                                    Run a screening to
+                                                    see candidate rankings.
+                                                </span>
+
+                                            </div>
+
+                                        </td>
+
+                                    </tr>
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+                <!-- =============================================
+                     SCREENING DISTRIBUTION
+                ============================================== -->
+
+                <section
+                    id="reports"
+                    class="page-section"
+                    aria-labelledby="summary-title"
+                >
+
+                    <div class="section-header">
+
+                        <div>
+
+                            <span class="section-kicker">
+                                INSIGHTS
+                            </span>
+
+                            <h3 id="summary-title">
+                                Screening Distribution
+                            </h3>
+
+                            <p>
+                                Candidate quality across the
+                                screening pipeline.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <div class="distribution-grid">
+
+                        <article class="distribution-card strong">
+
+                            <span class="distribution-label">
+                                Strong Match
+                            </span>
+
+                            <strong id="strongMatches">
+                                0
+                            </strong>
+
+                            <span>
+                                Highly relevant
+                            </span>
+
+                        </article>
+
+                        <article class="distribution-card good">
+
+                            <span class="distribution-label">
+                                Good Match
+                            </span>
+
+                            <strong id="goodMatches">
+                                0
+                            </strong>
+
+                            <span>
+                                Relevant candidates
+                            </span>
+
+                        </article>
+
+                        <article class="distribution-card moderate">
+
+                            <span class="distribution-label">
+                                Moderate Match
+                            </span>
+
+                            <strong id="moderateMatches">
+                                0
+                            </strong>
+
+                            <span>
+                                Needs review
+                            </span>
+
+                        </article>
+
+                        <article class="distribution-card weak">
+
+                            <span class="distribution-label">
+                                Weak Match
+                            </span>
+
+                            <strong id="weakMatches">
+                                0
+                            </strong>
+
+                            <span>
+                                Low relevance
+                            </span>
+
+                        </article>
+
+                    </div>
+
+                </section>
+
+            </div>
+
+            <!-- =================================================
+                 FOOTER
+            ================================================== -->
+
+            <footer class="application-footer">
+
+                <span>
+                    © 2026 ScreenAI
+                </span>
+
+                <span>
+                    AI-powered candidate intelligence
+                </span>
+
+            </footer>
+
+        </main>
+
+    </div>
+
+    <!-- =========================================================
+         CANDIDATE DETAIL MODAL
+    ========================================================== -->
+
+    <div
+        class="modal"
+        id="candidateModal"
+        hidden
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modalCandidateName"
+    >
+
+        <div
+            class="modal-backdrop"
+            id="modalBackdrop"
+        ></div>
+
+        <div class="modal-dialog">
+
+            <header class="modal-header">
+
+                <div>
+
+                    <span class="section-kicker">
+                        CANDIDATE ANALYSIS
+                    </span>
+
+                    <h3 id="modalCandidateName">
+                        Candidate
+                    </h3>
+
+                    <span
+                        id="modalRecommendation"
+                        class="decision-badge"
+                    >
+                        —
+                    </span>
+
+                </div>
+
+                <button
+                    type="button"
+                    class="modal-close"
+                    id="closeModal"
+                    aria-label="Close candidate details"
+                >
+                    ×
+                </button>
+
+            </header>
+
+            <div class="modal-score-card">
+
+                <div>
+
+                    <span>
+                        Final Screening Score
+                    </span>
+
+                    <strong id="modalFinalScore">
+                        0%
+                    </strong>
+
+                </div>
+
+            </div>
+
+            <div class="modal-metrics">
+
+                <div>
+                    <span>Semantic</span>
+                    <strong id="modalSemantic">
+                        0%
+                    </strong>
+                </div>
+
+                <div>
+                    <span>Required Skills</span>
+                    <strong id="modalRequired">
+                        0%
+                    </strong>
+                </div>
+
+                <div>
+                    <span>Preferred Skills</span>
+                    <strong id="modalPreferred">
+                        0%
+                    </strong>
+                </div>
+
+                <div>
+                    <span>Experience</span>
+                    <strong id="modalExperience">
+                        0%
+                    </strong>
+                </div>
+
+                <div>
+                    <span>Education</span>
+                    <strong id="modalEducation">
+                        0%
+                    </strong>
+                </div>
+
+            </div>
+
+            <div class="skill-columns">
+
+                <div class="skill-group">
+
+                    <h4>
+                        Matched Skills
+                    </h4>
+
+                    <div
+                        id="modalMatchedSkills"
+                        class="skill-list"
+                    ></div>
+
+                </div>
+
+                <div class="skill-group">
+
+                    <h4>
+                        Missing Skills
+                    </h4>
+
+                    <div
+                        id="modalMissingSkills"
+                        class="skill-list"
+                    ></div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- =========================================================
+         TOAST NOTIFICATION
+    ========================================================== -->
+
+    <div
+        id="toast"
+        class="toast"
+        role="status"
+        aria-live="polite"
+    >
+
+        <span
+            class="toast-icon"
+            id="toastIcon"
+        >
+            ✓
+        </span>
+
+        <span
+            id="toastMessage"
+        >
+            Operation completed.
+        </span>
+
+    </div>
+
+    <!-- =========================================================
+         JAVASCRIPT
+    ========================================================== -->
+
+    <script
+        src="/app.js"
+        defer
+    ></script>
+
+</body>
+</html>
