@@ -4,18 +4,17 @@ Resume Screening Agent
 
 Candidate Scoring Engine
 
-This module converts semantic matching results into an explainable
-candidate score by combining:
+Converts NLP matching results into an explainable candidate score.
 
-    1. Semantic similarity
-    2. Required technical skills
-    3. Preferred technical skills
-    4. Backend development experience
-    5. Relevant professional experience
-    6. Education
+Scoring:
+    Semantic Similarity   : 40%
+    Required Skills       : 35%
+    Preferred Skills      : 10%
+    Experience            : 10%
+    Education             : 5%
 
-The scoring layer is intentionally separate from the NLP matcher
-so that the ranking logic remains transparent and configurable.
+The scoring layer is kept separate from the NLP matcher so that
+the scoring logic remains transparent and easy to modify.
 """
 
 from __future__ import annotations
@@ -29,14 +28,14 @@ from matcher import MatchResult
 
 
 # ============================================================================
-# Logging
+# LOGGING
 # ============================================================================
 
 logger = logging.getLogger(__name__)
 
 
 # ============================================================================
-# Configuration
+# SCORING CONFIGURATION
 # ============================================================================
 
 SEMANTIC_WEIGHT = 0.40
@@ -46,86 +45,93 @@ EXPERIENCE_WEIGHT = 0.10
 EDUCATION_WEIGHT = 0.05
 
 
-REQUIRED_SKILLS = {
-    "python": [
+# ============================================================================
+# REQUIRED SKILLS
+# ============================================================================
+
+REQUIRED_SKILLS: dict[str, list[str]] = {
+    "Python": [
         r"\bpython\b",
     ],
-    "backend_framework": [
+    "Backend Framework": [
         r"\bflask\b",
         r"\bfastapi\b",
     ],
-    "rest_api": [
+    "REST API": [
         r"\brestful api\b",
         r"\brest api\b",
         r"\brest apis\b",
         r"\bapi development\b",
     ],
-    "sql": [
+    "SQL": [
         r"\bsql\b",
     ],
-    "relational_database": [
+    "Relational Database": [
         r"\bmysql\b",
         r"\bpostgresql\b",
         r"\bpostgres\b",
     ],
-    "git": [
+    "Git": [
         r"\bgit\b",
         r"\bgithub\b",
     ],
-    "oop": [
+    "Object-Oriented Programming": [
         r"\bobject[- ]oriented programming\b",
         r"\boop\b",
     ],
-    "dsa": [
+    "Data Structures & Algorithms": [
         r"\bdata structures\b",
         r"\bdata structures and algorithms\b",
         r"\balgorithms\b",
     ],
-    "exception_handling": [
+    "Exception Handling": [
         r"\bexception handling\b",
         r"\berror handling\b",
     ],
-    "jwt": [
+    "JWT Authentication": [
         r"\bjwt\b",
         r"\bjson web token\b",
-        r"\bauthentication\b",
     ],
 }
 
 
-PREFERRED_SKILLS = {
-    "docker": [
+# ============================================================================
+# PREFERRED SKILLS
+# ============================================================================
+
+PREFERRED_SKILLS: dict[str, list[str]] = {
+    "Docker": [
         r"\bdocker\b",
         r"\bcontainerization\b",
     ],
-    "cloud": [
+    "Cloud": [
         r"\baws\b",
         r"\bazure\b",
         r"\bgcp\b",
         r"\bcloud\b",
     ],
-    "mongodb": [
+    "MongoDB": [
         r"\bmongodb\b",
         r"\bmongo\b",
     ],
-    "redis": [
+    "Redis": [
         r"\bredis\b",
         r"\bcaching\b",
     ],
-    "celery": [
+    "Celery": [
         r"\bcelery\b",
         r"\bbackground task\b",
     ],
-    "cicd": [
+    "CI/CD": [
         r"\bci/cd\b",
         r"\bci cd\b",
         r"\bcontinuous integration\b",
         r"\bcontinuous deployment\b",
     ],
-    "linux": [
+    "Linux": [
         r"\blinux\b",
     ],
-    "pytest": [
+    "Pytest": [
         r"\bpytest\b",
         r"\bunit testing\b",
         r"\bautomated testing\b",
@@ -134,14 +140,12 @@ PREFERRED_SKILLS = {
 
 
 # ============================================================================
-# Data Models
+# DATA MODELS
 # ============================================================================
 
 @dataclass(frozen=True)
 class SkillResult:
-    """
-    Represents skill matching information for a candidate.
-    """
+    """Stores skill matching information for one candidate."""
 
     matched: list[str] = field(default_factory=list)
     missing: list[str] = field(default_factory=list)
@@ -151,67 +155,45 @@ class SkillResult:
 @dataclass(frozen=True)
 class CandidateScore:
     """
-    Final explainable candidate score.
+    Final explainable score for one candidate.
 
-    Attributes:
-        candidate_name:
-            Resume filename.
-
-        semantic_score:
-            NLP semantic similarity score.
-
-        required_skill_score:
-            Percentage of required skill categories matched.
-
-        preferred_skill_score:
-            Percentage of preferred skills matched.
-
-        experience_score:
-            Experience relevance score.
-
-        education_score:
-            Education relevance score.
-
-        final_score:
-            Weighted final score.
-
-        required_skills:
-            Skill matching details.
-
-        preferred_skills:
-            Preferred skill matching details.
-
-        recommendation:
-            Human-readable screening recommendation.
+    Scores are represented as percentages from 0 to 100.
     """
 
     candidate_name: str
+
     semantic_score: float
     required_skill_score: float
     preferred_skill_score: float
     experience_score: float
     education_score: float
+
     final_score: float
+
     required_skills: SkillResult
     preferred_skills: SkillResult
+
     recommendation: str
+
+    # Human-readable explanation for the ranking.
+    reason: str = ""
 
 
 # ============================================================================
-# Exceptions
+# EXCEPTIONS
 # ============================================================================
 
 class ScoringError(Exception):
-    """Base exception for scoring failures."""
+    """Raised when candidate scoring fails."""
 
 
 # ============================================================================
-# Text Utilities
+# TEXT UTILITIES
 # ============================================================================
 
-def normalize_resume_text(text: str) -> str:
+def normalize_text(text: str) -> str:
     """
-    Normalize resume text before skill detection.
+    Normalize resume text for consistent skill matching.
     """
 
     if not isinstance(text, str):
@@ -224,22 +206,26 @@ def normalize_resume_text(text: str) -> str:
     ).strip()
 
 
-def contains_skill(
+def contains_pattern(
     text: str,
     patterns: Sequence[str],
 ) -> bool:
     """
-    Check whether any pattern exists in the resume text.
+    Return True when at least one pattern matches the text.
     """
 
     return any(
-        re.search(pattern, text, flags=re.IGNORECASE)
+        re.search(
+            pattern,
+            text,
+            flags=re.IGNORECASE,
+        )
         for pattern in patterns
     )
 
 
 # ============================================================================
-# Skill Analysis
+# SKILL ANALYSIS
 # ============================================================================
 
 def evaluate_skills(
@@ -247,27 +233,19 @@ def evaluate_skills(
     skill_definitions: dict[str, list[str]],
 ) -> SkillResult:
     """
-    Evaluate a resume against a skill dictionary.
+    Match a resume against a skill dictionary.
 
-    Args:
-        resume_text:
-            Candidate resume content.
-
-        skill_definitions:
-            Skill categories and matching expressions.
-
-    Returns:
-        SkillResult containing matched/missing skills and score.
+    Each skill category contributes equally to the skill score.
     """
 
-    text = normalize_resume_text(resume_text)
+    text = normalize_text(resume_text)
 
     matched: list[str] = []
     missing: list[str] = []
 
     for skill_name, patterns in skill_definitions.items():
 
-        if contains_skill(text, patterns):
+        if contains_pattern(text, patterns):
             matched.append(skill_name)
         else:
             missing.append(skill_name)
@@ -275,7 +253,7 @@ def evaluate_skills(
     total_skills = len(skill_definitions)
 
     score = (
-        len(matched) / total_skills * 100
+        (len(matched) / total_skills) * 100
         if total_skills
         else 0.0
     )
@@ -288,7 +266,7 @@ def evaluate_skills(
 
 
 # ============================================================================
-# Experience Analysis
+# EXPERIENCE ANALYSIS
 # ============================================================================
 
 def calculate_experience_score(
@@ -297,19 +275,19 @@ def calculate_experience_score(
     """
     Estimate experience relevance.
 
-    Strong signals:
+    Signals considered:
         - Backend development
         - Python development
-        - Software engineering
+        - Software development
         - REST API development
         - Relevant years of experience
     """
 
-    text = normalize_resume_text(resume_text)
+    text = normalize_text(resume_text)
 
     score = 0.0
 
-    backend_signals = [
+    role_signals = [
         "backend developer",
         "backend engineer",
         "backend development",
@@ -321,19 +299,22 @@ def calculate_experience_score(
         "restful api",
     ]
 
-    signal_count = sum(
+    matched_signals = sum(
         1
-        for signal in backend_signals
+        for signal in role_signals
         if signal in text
     )
 
-    # Up to 70 points for relevant role signals.
+    # Maximum 70 points for role relevance.
     score += min(
-        signal_count * 10,
+        matched_signals * 10,
         70,
     )
 
-    # Detect professional experience duration.
+    # Detect experience such as:
+    # "2 years experience"
+    # "1.5 years"
+    # "3 yrs"
     experience_matches = re.findall(
         r"(\d+(?:\.\d+)?)\s*(?:years?|yrs?)",
         text,
@@ -350,15 +331,15 @@ def calculate_experience_score(
 
             if max_years >= 2:
                 score += 30
-
             elif max_years >= 1:
                 score += 20
-
             elif max_years > 0:
                 score += 10
 
         except ValueError:
-            pass
+            logger.warning(
+                "Unable to parse experience duration."
+            )
 
     return round(
         min(score, 100),
@@ -367,17 +348,24 @@ def calculate_experience_score(
 
 
 # ============================================================================
-# Education Analysis
+# EDUCATION ANALYSIS
 # ============================================================================
 
 def calculate_education_score(
     resume_text: str,
 ) -> float:
     """
-    Evaluate whether the resume contains a relevant bachelor's degree.
+    Estimate education relevance.
+
+    Strong signals include:
+        - Bachelor's degree
+        - B.Tech / B.E.
+        - Computer Science
+        - Information Technology
+        - Software Engineering
     """
 
-    text = normalize_resume_text(resume_text)
+    text = normalize_text(resume_text)
 
     degree_signals = [
         "bachelor",
@@ -406,7 +394,7 @@ def calculate_education_score(
 
 
 # ============================================================================
-# Recommendation
+# RECOMMENDATION
 # ============================================================================
 
 def generate_recommendation(
@@ -414,30 +402,123 @@ def generate_recommendation(
     required_skill_score: float,
 ) -> str:
     """
-    Convert the numerical score into a screening recommendation.
+    Convert numerical scores into a screening recommendation.
     """
 
-    if final_score >= 80 and required_skill_score >= 70:
+    if (
+        final_score >= 80
+        and required_skill_score >= 70
+    ):
         return "Strong Match"
 
-    if final_score >= 70 and required_skill_score >= 60:
+    if (
+        final_score >= 70
+        and required_skill_score >= 60
+    ):
         return "Good Match"
 
-    if final_score >= 60 and required_skill_score >= 50:
+    if (
+        final_score >= 60
+        and required_skill_score >= 50
+    ):
         return "Moderate Match"
 
     return "Weak Match"
 
 
 # ============================================================================
-# Candidate Scoring Engine
+# EXPLAINABLE REASONING
+# ============================================================================
+
+def generate_reason(
+    required_skills: SkillResult,
+    preferred_skills: SkillResult,
+    experience_score: float,
+    education_score: float,
+    semantic_score: float,
+    final_score: float,
+) -> str:
+    """
+    Generate a concise human-readable explanation
+    for the candidate's score.
+    """
+
+    strengths: list[str] = []
+    gaps: list[str] = []
+
+    # ------------------------------------------------------------
+    # Strengths
+    # ------------------------------------------------------------
+
+    if semantic_score >= 75:
+        strengths.append("strong semantic alignment with the job description")
+    elif semantic_score >= 60:
+        strengths.append("good semantic alignment with the job description")
+
+    if required_skills.score >= 70:
+        strengths.append("strong coverage of required skills")
+    elif required_skills.score >= 50:
+        strengths.append("reasonable coverage of required skills")
+
+    if experience_score >= 70:
+        strengths.append("relevant development experience")
+
+    if education_score >= 75:
+        strengths.append("relevant educational background")
+
+    # ------------------------------------------------------------
+    # Gaps
+    # ------------------------------------------------------------
+
+    if required_skills.missing:
+        gaps.append(
+            "missing required skills: "
+            + ", ".join(required_skills.missing)
+        )
+
+    if preferred_skills.missing:
+        gaps.append(
+            "missing preferred skills: "
+            + ", ".join(preferred_skills.missing)
+        )
+
+    # ------------------------------------------------------------
+    # Build explanation
+    # ------------------------------------------------------------
+
+    if strengths:
+        reason = (
+            f"Final score is {final_score:.2f}%. "
+            f"The candidate shows "
+            + "; ".join(strengths)
+            + "."
+        )
+    else:
+        reason = (
+            f"Final score is {final_score:.2f}%. "
+            "The candidate has limited alignment with the role."
+        )
+
+    if gaps:
+        reason += " Key gaps include " + "; ".join(gaps) + "."
+
+    return reason
+
+
+# ============================================================================
+# CANDIDATE SCORER
 # ============================================================================
 
 class CandidateScorer:
     """
     Explainable candidate scoring engine.
 
-    Combines NLP similarity with rule-based skill and experience analysis.
+    Combines:
+        - NLP semantic similarity
+        - Required skills
+        - Preferred skills
+        - Experience
+        - Education
     """
 
     def score_candidate(
@@ -446,23 +527,38 @@ class CandidateScorer:
         resume_text: str,
     ) -> CandidateScore:
         """
-        Generate a final score for one candidate.
+        Calculate the final score for one candidate.
         """
+
+        if not isinstance(resume_text, str):
+            raise ScoringError(
+                f"Invalid resume content: "
+                f"{match_result.candidate_name}"
+            )
 
         if not resume_text.strip():
             raise ScoringError(
-                f"Empty resume content: {match_result.candidate_name}"
+                f"Empty resume content: "
+                f"{match_result.candidate_name}"
             )
 
-        required = evaluate_skills(
+        # ------------------------------------------------------------
+        # Skill analysis
+        # ------------------------------------------------------------
+
+        required_skills = evaluate_skills(
             resume_text,
             REQUIRED_SKILLS,
         )
 
-        preferred = evaluate_skills(
+        preferred_skills = evaluate_skills(
             resume_text,
             PREFERRED_SKILLS,
         )
+
+        # ------------------------------------------------------------
+        # Experience and education
+        # ------------------------------------------------------------
 
         experience_score = calculate_experience_score(
             resume_text
@@ -472,42 +568,87 @@ class CandidateScorer:
             resume_text
         )
 
-        semantic_score = match_result.relevance_score
+        # ------------------------------------------------------------
+        # Semantic similarity
+        # ------------------------------------------------------------
+
+        semantic_score = float(
+            match_result.relevance_score
+        )
+
+        semantic_score = round(
+            max(
+                0.0,
+                min(
+                    semantic_score,
+                    100.0,
+                ),
+            ),
+            2,
+        )
+
+        # ------------------------------------------------------------
+        # Weighted final score
+        # ------------------------------------------------------------
 
         final_score = (
             semantic_score * SEMANTIC_WEIGHT
-            + required.score * REQUIRED_SKILLS_WEIGHT
-            + preferred.score * PREFERRED_SKILLS_WEIGHT
+            + required_skills.score * REQUIRED_SKILLS_WEIGHT
+            + preferred_skills.score * PREFERRED_SKILLS_WEIGHT
             + experience_score * EXPERIENCE_WEIGHT
             + education_score * EDUCATION_WEIGHT
         )
 
         final_score = round(
-            min(max(final_score, 0), 100),
+            max(
+                0.0,
+                min(
+                    final_score,
+                    100.0,
+                ),
+            ),
             2,
         )
 
+        # ------------------------------------------------------------
+        # Recommendation
+        # ------------------------------------------------------------
+
         recommendation = generate_recommendation(
-            final_score,
-            required.score,
+            final_score=final_score,
+            required_skill_score=required_skills.score,
+        )
+
+        # ------------------------------------------------------------
+        # Explanation
+        # ------------------------------------------------------------
+
+        reason = generate_reason(
+            required_skills=required_skills,
+            preferred_skills=preferred_skills,
+            experience_score=experience_score,
+            education_score=education_score,
+            semantic_score=semantic_score,
+            final_score=final_score,
         )
 
         return CandidateScore(
             candidate_name=match_result.candidate_name,
             semantic_score=semantic_score,
-            required_skill_score=required.score,
-            preferred_skill_score=preferred.score,
+            required_skill_score=required_skills.score,
+            preferred_skill_score=preferred_skills.score,
             experience_score=experience_score,
             education_score=education_score,
             final_score=final_score,
-            required_skills=required,
-            preferred_skills=preferred,
+            required_skills=required_skills,
+            preferred_skills=preferred_skills,
             recommendation=recommendation,
+            reason=reason,
         )
 
 
 # ============================================================================
-# Batch Scoring
+# BATCH SCORING
 # ============================================================================
 
 def score_candidates(
@@ -515,116 +656,158 @@ def score_candidates(
     resumes: Sequence,
 ) -> list[CandidateScore]:
     """
-    Score all matched candidates.
+    Score all candidates and return them sorted by final score.
 
     Args:
         match_results:
-            NLP matching results.
+            Semantic matching results.
 
         resumes:
             Parsed resume documents.
 
     Returns:
-        CandidateScore objects sorted by final score.
+        Candidates sorted from highest to lowest score.
     """
 
+    if not match_results:
+        logger.warning(
+            "No matching results were provided."
+        )
+        return []
+
+    if not resumes:
+        logger.warning(
+            "No resumes were provided."
+        )
+        return []
+
+    # Create quick lookup:
+    # resume filename → resume text
     resume_lookup = {
         resume.filename: resume.text
         for resume in resumes
+        if getattr(resume, "filename", None)
     }
 
     scorer = CandidateScorer()
 
     scored_candidates: list[CandidateScore] = []
 
-    for result in match_results:
+    for match_result in match_results:
+
+        candidate_name = match_result.candidate_name
 
         resume_text = resume_lookup.get(
-            result.candidate_name
+            candidate_name
         )
 
         if resume_text is None:
             logger.warning(
-                "Resume text not found for %s",
-                result.candidate_name,
+                "Resume text not found for: %s",
+                candidate_name,
             )
             continue
 
         try:
-            score = scorer.score_candidate(
-                match_result=result,
+
+            result = scorer.score_candidate(
+                match_result=match_result,
                 resume_text=resume_text,
             )
 
-            scored_candidates.append(score)
+            scored_candidates.append(result)
 
         except ScoringError as exc:
+
             logger.error(
                 "Scoring failed for %s: %s",
-                result.candidate_name,
+                candidate_name,
                 exc,
             )
 
-    return sorted(
-        scored_candidates,
-        key=lambda candidate: candidate.final_score,
+    # Highest score first.
+    scored_candidates.sort(
+        key=lambda candidate: (
+            candidate.final_score,
+            candidate.semantic_score,
+        ),
         reverse=True,
     )
 
+    return scored_candidates
+
 
 # ============================================================================
-# Display Utility
+# TERMINAL DISPLAY
 # ============================================================================
 
 def display_results(
     results: Sequence[CandidateScore],
 ) -> None:
     """
-    Display professional candidate ranking.
+    Display candidate ranking in the terminal.
     """
 
-    print("\n" + "=" * 90)
+    print("\n" + "=" * 105)
     print("🏆 FINAL CANDIDATE SCREENING RESULTS")
-    print("=" * 90)
+    print("=" * 105)
+
+    if not results:
+        print("No candidates were successfully scored.")
+        print("=" * 105)
+        return
 
     print(
         f"{'Rank':<6}"
-        f"{'Candidate':<25}"
+        f"{'Candidate':<28}"
         f"{'Semantic':>12}"
         f"{'Required':>12}"
         f"{'Preferred':>12}"
         f"{'Final':>12}"
     )
 
-    print("-" * 90)
+    print("-" * 105)
 
-    for rank, result in enumerate(results, start=1):
-
+    for rank, result in enumerate(
+        results,
+        start=1,
+    ):
         print(
             f"{rank:<6}"
-            f"{result.candidate_name:<25}"
+            f"{result.candidate_name:<28}"
             f"{result.semantic_score:>10.2f}%"
             f"{result.required_skill_score:>10.2f}%"
             f"{result.preferred_skill_score:>10.2f}%"
             f"{result.final_score:>10.2f}%"
         )
 
-    print("=" * 90)
+    print("=" * 105)
 
-    print("\n📋 Candidate Recommendations")
+    print("\n📋 CANDIDATE RECOMMENDATIONS")
+    print("-" * 105)
 
-    for rank, result in enumerate(results, start=1):
+    for rank, result in enumerate(
+        results,
+        start=1,
+    ):
 
         print(
             f"\n{rank}. {result.candidate_name}"
         )
 
         print(
-            f"   Final Score : {result.final_score:.2f}%"
+            f"   Final Score : "
+            f"{result.final_score:.2f}%"
         )
 
         print(
-            f"   Decision    : {result.recommendation}"
+            f"   Decision    : "
+            f"{result.recommendation}"
+        )
+
+        print(
+            f"   Semantic    : "
+            f"{result.semantic_score:.2f}%"
         )
 
         print(
@@ -632,20 +815,30 @@ def display_results(
             f"{result.required_skill_score:.2f}%"
         )
 
-        print(
-            f"   Matched     : "
-            f"{', '.join(result.required_skills.matched)}"
-        )
+        if result.required_skills.matched:
+            print(
+                "   Matched     : "
+                + ", ".join(
+                    result.required_skills.matched
+                )
+            )
 
         if result.required_skills.missing:
             print(
-                f"   Missing     : "
-                f"{', '.join(result.required_skills.missing)}"
+                "   Missing     : "
+                + ", ".join(
+                    result.required_skills.missing
+                )
             )
+
+        print(
+            f"   Reason      : "
+            f"{result.reason}"
+        )
 
 
 # ============================================================================
-# Local Development Test
+# LOCAL TEST
 # ============================================================================
 
 if __name__ == "__main__":
@@ -661,30 +854,43 @@ if __name__ == "__main__":
         format="%(levelname)s | %(message)s",
     )
 
-    print("\n" + "=" * 90)
+    print("\n" + "=" * 105)
     print("🤖 RESUME SCREENING AGENT")
     print("📊 EXPLAINABLE CANDIDATE SCORING ENGINE")
-    print("=" * 90)
+    print("=" * 105)
 
-    # ------------------------------------------------------------------------
+    # ------------------------------------------------------------
+    # Paths
+    # ------------------------------------------------------------
+
+    job_description_path = "data/job_description.pdf"
+    resumes_path = "data/resumes"
+
+    # ------------------------------------------------------------
     # Load documents
-    # ------------------------------------------------------------------------
+    # ------------------------------------------------------------
 
     job_description = load_job_description(
-        "data/job_description.txt"
+        job_description_path
     )
 
     resumes = load_resumes(
-        "data/resumes"
+        resumes_path
     )
 
     print(
         f"\n📄 Resumes loaded: {len(resumes)}"
     )
 
-    # ------------------------------------------------------------------------
+    if len(resumes) < 10:
+        print(
+            "⚠️ Warning: fewer than 10 resumes "
+            "were loaded."
+        )
+
+    # ------------------------------------------------------------
     # NLP matching
-    # ------------------------------------------------------------------------
+    # ------------------------------------------------------------
 
     matcher = get_matcher()
 
@@ -693,21 +899,23 @@ if __name__ == "__main__":
         resumes=resumes,
     )
 
-    # ------------------------------------------------------------------------
-    # Final scoring
-    # ------------------------------------------------------------------------
+    # ------------------------------------------------------------
+    # Candidate scoring
+    # ------------------------------------------------------------
 
     final_results = score_candidates(
         match_results=match_results,
         resumes=resumes,
     )
 
-    # ------------------------------------------------------------------------
+    # ------------------------------------------------------------
     # Display
-    # ------------------------------------------------------------------------
+    # ------------------------------------------------------------
 
-    display_results(final_results)
+    display_results(
+        final_results
+    )
 
-    print("\n" + "=" * 90)
+    print("\n" + "=" * 105)
     print("✅ CANDIDATE SCORING COMPLETED")
-    print("=" * 90)
+    print("=" * 105)
